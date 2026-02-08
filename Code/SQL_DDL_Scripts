@@ -1,0 +1,86 @@
+-- Customer Table
+create table customers (
+customer_id VARCHAR(50) primary key,
+first_name VARCHAR(100) not null,
+second_name VARCHAR(100) not null,
+postcode VARCHAR(20),
+d_o_b DATE,
+created_at timestamp default NOW() not null,
+updated_at timestamp 
+);
+
+
+-- Customer_Financial_Profile
+create table customer_financial_profile(
+profile_id varchar(50) primary key,
+customer_id varchar(50) not null,
+credit_score numeric(3) check (credit_score between 0 and 999),
+source       VARCHAR(100),
+retrieved_at DATE,
+created_at   TIMESTAMP DEFAULT NOW() NOT NULL,
+updated_at   TIMESTAMP,
+
+constraint fk_customer_fin foreign key (customer_id) references customers(customer_id)
+);
+
+
+-- Policy
+CREATE TABLE Policy (
+    policy_id          VARCHAR(50) PRIMARY KEY,
+    customer_id        VARCHAR(50) NOT NULL,
+    annual_premium_amount NUMERIC(15,2),
+    policy_type        VARCHAR(50) CHECK (policy_type IN ('MOTOR','HOME')),
+    start_date         DATE,
+    end_date           DATE,
+    status             VARCHAR(20) CHECK (status IN ('pending','active','lapsed','terminated','settled','expired')),
+    created_at         TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at         TIMESTAMP,
+    CONSTRAINT fk_policy_customer FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    CONSTRAINT chk_policy_dates CHECK (end_date IS NULL OR end_date >= start_date)
+);
+
+
+
+-- Claims
+CREATE TABLE Claims (
+    claim_id        VARCHAR(50) PRIMARY KEY,
+    policy_id       VARCHAR(50) NOT NULL,
+    incident_date_time TIMESTAMP,
+    report_date     DATE,
+    claim_amount    NUMERIC(15,2),
+    incident_type   VARCHAR(100),
+    incident_lat    NUMERIC(10,6),
+    incident_long   NUMERIC(10,6),
+    incident_location VARCHAR(200),
+    status          VARCHAR(20) CHECK (status IN ('reported','under_review','approved','rejected','settled')),
+    image_id        VARCHAR(50),
+    created_at      TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at      TIMESTAMP,
+    CONSTRAINT fk_claim_policy FOREIGN KEY (policy_id) REFERENCES Policy(policy_id)
+);
+
+
+-- Images
+CREATE TABLE Images (
+    image_id      VARCHAR(50) PRIMARY KEY,
+    owner_type    VARCHAR(20) CHECK (owner_type IN ('CLAIM','CUSTOMER')),
+    owner_id      VARCHAR(50) NOT NULL,
+    object_key    VARCHAR(200),
+    checksum      VARCHAR(100),
+    exif_timestamp TIMESTAMP,
+    uploaded_at    TIMESTAMP,
+    created_at     TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at     TIMESTAMP
+    
+);
+
+
+-- Indexes
+
+CREATE INDEX idx_policy_customer ON Policy(customer_id);
+CREATE INDEX idx_claim_policy ON Claims(policy_id);
+CREATE INDEX idx_claim_status ON Claims(status);
+CREATE INDEX idx_claim_incident_date ON Claims(incident_date_time);
+CREATE INDEX idx_fin_profile_customer_date ON Customer_Financial_Profile(customer_id, retrieved_at);
+
+
