@@ -1,0 +1,1 @@
+The purpose of this Datawarehouse project is to support historical analysis of insurance claim operational monitoring, financial insight and risk analysis. It serves claim operations, fraud analysts, and management by providing a consistent, analytics-ready view of claims, customers, and policies over time.
