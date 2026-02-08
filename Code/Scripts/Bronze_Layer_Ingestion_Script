@@ -1,0 +1,145 @@
+-- On insureme_dw
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+
+CREATE SERVER oltp_server
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (
+    host 'localhost',
+    dbname 'InsureMe',
+    port '5432'
+);
+
+CREATE USER MAPPING FOR CURRENT_USER
+SERVER oltp_server
+OPTIONS (user 'your_userId_for_your_OLTP_database', password 'password_for_the_same');
+
+CREATE SCHEMA IF NOT EXISTS oltp_src;
+
+IMPORT FOREIGN SCHEMA public
+FROM SERVER oltp_server
+INTO oltp_src;
+
+
+
+-- Bronze table Ingestion Script
+
+
+-- Populating Customer Table
+
+INSERT INTO bronze.oltp_customers (
+    customer_id,
+    first_name,
+    second_name,
+    postcode,
+    d_o_b,
+    created_at,
+    updated_at,
+    ingestion_ts,
+    source_system
+)
+SELECT
+    customer_id,
+    first_name,
+    second_name,
+    postcode,
+    d_o_b,
+    created_at,
+    updated_at,
+    NOW(),
+    'OLTP'
+FROM oltp_src.customers;
+
+
+
+-- Populating Customer Financial Profile Table
+
+INSERT INTO bronze.oltp_customer_financial_profile (
+    profile_id,
+    customer_id,
+    credit_score,
+    source,
+    retrieved_at,
+    created_at,
+    updated_at,
+    ingestion_ts,
+    source_system
+)
+SELECT
+    profile_id,
+    customer_id,
+    credit_score,
+    source,
+    retrieved_at,
+    created_at,
+    updated_at,
+    NOW(),
+    'OLTP'
+FROM oltp_src.customer_financial_profile;
+
+
+
+
+-- Populating Policy Table
+
+INSERT INTO bronze.oltp_policy (
+    policy_id,
+    customer_id,
+    annual_premium_amount,
+    policy_type,
+    start_date,
+    end_date,
+    status,
+    created_at,
+    updated_at,
+    ingestion_ts,
+    source_system
+)
+SELECT
+    policy_id,
+    customer_id,
+    annual_premium_amount,
+    policy_type,
+    start_date,
+    end_date,
+    status,
+    created_at,
+    updated_at,
+    NOW(),
+    'OLTP'
+FROM oltp_src.policy;
+
+
+-- Populating Claims Table
+
+INSERT INTO bronze.oltp_claims (
+    claim_id,
+    policy_id,
+    incident_date_time,
+    report_date,
+    claim_amount,
+    incident_type,
+    incident_lat,
+    incident_long,
+    incident_location,
+    status,
+    created_at,
+    updated_at,
+    ingestion_ts,
+    source_system
+)
+SELECT
+    claim_id,
+    policy_id,
+    incident_date_time,
+    report_date,
+    claim_amount,
+    incident_type,
+    incident_lat,
+    incident_long,
+    incident_location,
+    status,
+    created_at,
+    updated_at,
+    NOW(),
+    'OLTP'
+FROM oltp_src.claims;
