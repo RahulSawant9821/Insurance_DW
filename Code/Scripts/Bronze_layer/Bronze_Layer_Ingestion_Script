@@ -23,123 +23,125 @@ INTO oltp_src;
 
 -- Bronze table Ingestion Script
 
-
--- Populating Customer Table
-
-INSERT INTO bronze.oltp_customers (
-    customer_id,
-    first_name,
-    second_name,
-    postcode,
-    d_o_b,
-    created_at,
-    updated_at,
-    ingestion_ts,
-    source_system
-)
-SELECT
-    customer_id,
-    first_name,
-    second_name,
-    postcode,
-    d_o_b,
-    created_at,
-    updated_at,
-    NOW(),
-    'OLTP'
-FROM oltp_src.customers;
+CREATE OR REPLACE PROCEDURE bronze.load_bronze()
+LANGUAGE plpgsql
+AS $$
+BEGIN
 
 
+    -- Populating Customer Table
+    TRUNCATE TABLE bronze.oltp_customers;
+    INSERT INTO bronze.oltp_customers (
+        customer_id,
+        first_name,
+        second_name,
+        postcode,
+        d_o_b,
+        created_at,
+        updated_at,
+        ingestion_ts,
+        source_system
+    )
+    SELECT
+        customer_id,
+        first_name,
+        second_name,
+        postcode,
+        d_o_b,
+        created_at,
+        updated_at,
+        NOW(),
+        'OLTP'
+    FROM oltp_src.customers;
 
--- Populating Customer Financial Profile Table
+    -- Populating Customer Financial Profile Table
+    TRUNCATE TABLE bronze.oltp_customer_financial_profile;
+    INSERT INTO bronze.oltp_customer_financial_profile (
+        profile_id,
+        customer_id,
+        credit_score,
+        source,
+        retrieved_at,
+        created_at,
+        updated_at,
+        ingestion_ts,
+        source_system
+    )
+    SELECT
+        profile_id,
+        customer_id,
+        credit_score,
+        source,
+        retrieved_at,
+        created_at,
+        updated_at,
+        NOW(),
+        'OLTP'
+    FROM oltp_src.customer_financial_profile;
 
-INSERT INTO bronze.oltp_customer_financial_profile (
-    profile_id,
-    customer_id,
-    credit_score,
-    source,
-    retrieved_at,
-    created_at,
-    updated_at,
-    ingestion_ts,
-    source_system
-)
-SELECT
-    profile_id,
-    customer_id,
-    credit_score,
-    source,
-    retrieved_at,
-    created_at,
-    updated_at,
-    NOW(),
-    'OLTP'
-FROM oltp_src.customer_financial_profile;
+    -- Populating Policy Table
+    TRUNCATE TABLE bronze.oltp_policy;
+    INSERT INTO bronze.oltp_policy (
+        policy_id,
+        customer_id,
+        annual_premium_amount,
+        policy_type,
+        start_date,
+        end_date,
+        status,
+        created_at,
+        updated_at,
+        ingestion_ts,
+        source_system
+    )
+    SELECT
+        policy_id,
+        customer_id,
+        annual_premium_amount,
+        policy_type,
+        start_date,
+        end_date,
+        status,
+        created_at,
+        updated_at,
+        NOW(),
+        'OLTP'
+    FROM oltp_src.policy;
 
+    -- Populating Claims Table
+    TRUNCATE TABLE bronze.oltp_claims;
+    INSERT INTO bronze.oltp_claims (
+        claim_id,
+        policy_id,
+        incident_date_time,
+        report_date,
+        claim_amount,
+        incident_type,
+        incident_lat,
+        incident_long,
+        incident_location,
+        status,
+        created_at,
+        updated_at,
+        ingestion_ts,
+        source_system
+    )
+    SELECT
+        claim_id,
+        policy_id,
+        incident_date_time,
+        report_date,
+        claim_amount,
+        incident_type,
+        incident_lat,
+        incident_long,
+        incident_location,
+        status,
+        created_at,
+        updated_at,
+        NOW(),
+        'OLTP'
+    FROM oltp_src.claims;
 
-
-
--- Populating Policy Table
-
-INSERT INTO bronze.oltp_policy (
-    policy_id,
-    customer_id,
-    annual_premium_amount,
-    policy_type,
-    start_date,
-    end_date,
-    status,
-    created_at,
-    updated_at,
-    ingestion_ts,
-    source_system
-)
-SELECT
-    policy_id,
-    customer_id,
-    annual_premium_amount,
-    policy_type,
-    start_date,
-    end_date,
-    status,
-    created_at,
-    updated_at,
-    NOW(),
-    'OLTP'
-FROM oltp_src.policy;
-
-
--- Populating Claims Table
-
-INSERT INTO bronze.oltp_claims (
-    claim_id,
-    policy_id,
-    incident_date_time,
-    report_date,
-    claim_amount,
-    incident_type,
-    incident_lat,
-    incident_long,
-    incident_location,
-    status,
-    created_at,
-    updated_at,
-    ingestion_ts,
-    source_system
-)
-SELECT
-    claim_id,
-    policy_id,
-    incident_date_time,
-    report_date,
-    claim_amount,
-    incident_type,
-    incident_lat,
-    incident_long,
-    incident_location,
-    status,
-    created_at,
-    updated_at,
-    NOW(),
-    'OLTP'
-FROM oltp_src.claims;
+END;
+$$;
