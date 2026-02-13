@@ -15,12 +15,12 @@ CREATE SCHEMA IF NOT EXISTS gold;
 DROP TABLE IF EXISTS bronze.oltp_customers;
 
 CREATE TABLE bronze.oltp_customers (
-    customer_id        VARCHAR(50) PRIMARY KEY,
-    first_name         VARCHAR(100) NOT NULL,
-    second_name        VARCHAR(100) NOT NULL,
+    customer_id        VARCHAR(50),
+    first_name         VARCHAR(100),
+    second_name        VARCHAR(100),
     postcode           VARCHAR(20),
     d_o_b              DATE,
-    created_at         TIMESTAMP NOT NULL,
+    created_at         TIMESTAMP,
     updated_at         TIMESTAMP,
     ingestion_ts       TIMESTAMP DEFAULT NOW() NOT NULL,
     source_system      VARCHAR(50) DEFAULT 'OLTP'
@@ -33,18 +33,15 @@ CREATE TABLE bronze.oltp_customers (
 DROP TABLE IF EXISTS bronze.oltp_customer_financial_profile;
 
 CREATE TABLE bronze.oltp_customer_financial_profile (
-    profile_id     VARCHAR(50) PRIMARY KEY,
-    customer_id    VARCHAR(50) NOT NULL,
+    profile_id     VARCHAR(50),
+    customer_id    VARCHAR(50),
     credit_score   NUMERIC(3),
     source         VARCHAR(100),
     retrieved_at   DATE,
-    created_at     TIMESTAMP NOT NULL,
+    created_at     TIMESTAMP,
     updated_at     TIMESTAMP,
     ingestion_ts   TIMESTAMP DEFAULT NOW() NOT NULL,
-    source_system  VARCHAR(50) DEFAULT 'OLTP',
-    CONSTRAINT fk_bronze_customer_fin
-        FOREIGN KEY (customer_id)
-        REFERENCES bronze.oltp_customers(customer_id)
+    source_system  VARCHAR(50) DEFAULT 'OLTP'
 );
 
 
@@ -54,20 +51,18 @@ CREATE TABLE bronze.oltp_customer_financial_profile (
 DROP TABLE IF EXISTS bronze.oltp_policy;
 
 CREATE TABLE bronze.oltp_policy (
-    policy_id        VARCHAR(50) PRIMARY KEY,
-    customer_id      VARCHAR(50) NOT NULL,
+    policy_id        VARCHAR(50),
+    customer_id      VARCHAR(50),
     annual_premium_amount NUMERIC(15,2),
     policy_type      VARCHAR(50),
     start_date       DATE,
     end_date         DATE,
     status           VARCHAR(20),
-    created_at       TIMESTAMP NOT NULL,
+    created_at       TIMESTAMP,
     updated_at       TIMESTAMP,
     ingestion_ts     TIMESTAMP DEFAULT NOW() NOT NULL,
-    source_system    VARCHAR(50) DEFAULT 'OLTP',
-    CONSTRAINT fk_bronze_policy_customer
-        FOREIGN KEY (customer_id)
-        REFERENCES bronze.oltp_customers(customer_id)
+    source_system    VARCHAR(50) DEFAULT 'OLTP'
+
 );
 
 
@@ -76,8 +71,8 @@ CREATE TABLE bronze.oltp_policy (
 DROP TABLE IF EXISTS bronze.oltp_claims;
 
 CREATE TABLE bronze.oltp_claims (
-    claim_id             VARCHAR(50) PRIMARY KEY,
-    policy_id            VARCHAR(50) NOT NULL,
+    claim_id             VARCHAR(50),
+    policy_id            VARCHAR(50),
     incident_date_time   TIMESTAMP,
     report_date          DATE,
     claim_amount         NUMERIC(15,2),
@@ -86,16 +81,9 @@ CREATE TABLE bronze.oltp_claims (
     incident_long        NUMERIC(10,6),
     incident_location    VARCHAR(200),
     status               VARCHAR(20),
-    created_at           TIMESTAMP NOT NULL,
+    created_at           TIMESTAMP,
     updated_at           TIMESTAMP,
     ingestion_ts         TIMESTAMP DEFAULT NOW() NOT NULL,
-    source_system        VARCHAR(50) DEFAULT 'OLTP',
-    CONSTRAINT fk_bronze_claim_policy
-        FOREIGN KEY (policy_id)
-        REFERENCES bronze.oltp_policy(policy_id)
+    source_system        VARCHAR(50) DEFAULT 'OLTP'
+    
 );
-
-
-
-
-
