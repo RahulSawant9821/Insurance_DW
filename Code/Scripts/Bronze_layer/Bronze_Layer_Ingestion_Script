@@ -1,6 +1,8 @@
 -- On insureme_dw
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
+DROP SERVER IF EXISTS oltp_server CASCADE;
+
 CREATE SERVER oltp_server
 FOREIGN DATA WRAPPER postgres_fdw
 OPTIONS (
@@ -17,8 +19,8 @@ CREATE SCHEMA IF NOT EXISTS oltp_src;
 
 IMPORT FOREIGN SCHEMA public
 FROM SERVER oltp_server
-INTO oltp_src;
-
+INTO oltp_src;	
+	
 
 
 -- Bronze table Ingestion Script
