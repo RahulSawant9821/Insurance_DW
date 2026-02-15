@@ -1,31 +1,37 @@
+-- Create OLTP Schema
+
+CREATE SCHEMA IF NOT EXISTS oltp;
+
 -- Customer Table
-create table customers (
-customer_id VARCHAR(50) primary key,
-first_name VARCHAR(100) not null,
-second_name VARCHAR(100) not null,
-postcode VARCHAR(20),
-d_o_b DATE,
-created_at timestamp default NOW() not null,
-updated_at timestamp 
+
+CREATE TABLE oltp.Customer (
+    customer_id VARCHAR(50) PRIMARY KEY,
+    first_name  VARCHAR(100) NOT NULL,
+    last_name   VARCHAR(100) NOT NULL,
+    postcode    VARCHAR(20),
+    d_o_b       DATE,
+    created_at  TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at  TIMESTAMP
 );
 
 
--- Customer_Financial_Profile
-create table customer_financial_profile(
-profile_id varchar(50) primary key,
-customer_id varchar(50) not null,
-credit_score numeric(3) check (credit_score between 0 and 999),
-source       VARCHAR(100),
-retrieved_at DATE,
-created_at   TIMESTAMP DEFAULT NOW() NOT NULL,
-updated_at   TIMESTAMP,
+-- Customer Financial Profile Table
 
-constraint fk_customer_fin foreign key (customer_id) references customers(customer_id)
+CREATE TABLE oltp.Customer_Financial_Profile (
+    profile_id   VARCHAR(50) PRIMARY KEY,
+    customer_id  VARCHAR(50) NOT NULL,
+    credit_score NUMERIC(3) CHECK (credit_score BETWEEN 0 AND 999),
+    source       VARCHAR(100),
+    retrieved_at DATE,
+    created_at   TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at   TIMESTAMP,
+    CONSTRAINT fk_customer_fin FOREIGN KEY (customer_id) REFERENCES oltp.Customer(customer_id)
 );
 
 
--- Policy
-CREATE TABLE Policy (
+-- Policy Table
+
+CREATE TABLE oltp.Policy (
     policy_id          VARCHAR(50) PRIMARY KEY,
     customer_id        VARCHAR(50) NOT NULL,
     annual_premium_amount NUMERIC(15,2),
@@ -35,14 +41,14 @@ CREATE TABLE Policy (
     status             VARCHAR(20) CHECK (status IN ('pending','active','lapsed','terminated','settled','expired')),
     created_at         TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at         TIMESTAMP,
-    CONSTRAINT fk_policy_customer FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    CONSTRAINT fk_policy_customer FOREIGN KEY (customer_id) REFERENCES oltp.Customer(customer_id),
     CONSTRAINT chk_policy_dates CHECK (end_date IS NULL OR end_date >= start_date)
 );
 
 
+--  Claims Table
 
--- Claims
-CREATE TABLE Claims (
+CREATE TABLE oltp.Claims (
     claim_id        VARCHAR(50) PRIMARY KEY,
     policy_id       VARCHAR(50) NOT NULL,
     incident_date_time TIMESTAMP,
@@ -56,31 +62,23 @@ CREATE TABLE Claims (
     image_id        VARCHAR(50),
     created_at      TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at      TIMESTAMP,
-    CONSTRAINT fk_claim_policy FOREIGN KEY (policy_id) REFERENCES Policy(policy_id)
+    CONSTRAINT fk_claim_policy FOREIGN KEY (policy_id) REFERENCES oltp.Policy(policy_id)
 );
 
 
--- Images
-CREATE TABLE Images (
-    image_id      VARCHAR(50) PRIMARY KEY,
-    owner_type    VARCHAR(20) CHECK (owner_type IN ('CLAIM','CUSTOMER')),
-    owner_id      VARCHAR(50) NOT NULL,
-    object_key    VARCHAR(200),
-    checksum      VARCHAR(100),
-    exif_timestamp TIMESTAMP,
-    uploaded_at    TIMESTAMP,
+
+-- Payments Table 
+
+CREATE TABLE oltp.Payment (
+    payment_id     VARCHAR(50) PRIMARY KEY,
+    claim_id       VARCHAR(50) UNIQUE,
+    policy_id      VARCHAR(50) NOT NULL,
+    payment_date   DATE NOT NULL,
+    amount         NUMERIC(15,2) NOT NULL,
+    payment_method VARCHAR(50) CHECK (payment_method IN ('credit_card','bank_transfer','cash','cheque')),
+    status         VARCHAR(20) CHECK (status IN ('pending','completed','failed','refunded')),
     created_at     TIMESTAMP DEFAULT NOW() NOT NULL,
-    updated_at     TIMESTAMP
-    
+    updated_at     TIMESTAMP,
+    CONSTRAINT fk_payment_policy FOREIGN KEY (policy_id) REFERENCES oltp.Policy(policy_id),
+    CONSTRAINT fk_payment_claim FOREIGN KEY (claim_id) REFERENCES oltp.Claims(claim_id)
 );
-
-
--- Indexes
-
-CREATE INDEX idx_policy_customer ON Policy(customer_id);
-CREATE INDEX idx_claim_policy ON Claims(policy_id);
-CREATE INDEX idx_claim_status ON Claims(status);
-CREATE INDEX idx_claim_incident_date ON Claims(incident_date_time);
-CREATE INDEX idx_fin_profile_customer_date ON Customer_Financial_Profile(customer_id, retrieved_at);
-
-
