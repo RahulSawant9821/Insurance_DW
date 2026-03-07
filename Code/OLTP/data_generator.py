@@ -9,11 +9,11 @@ fake = Faker('en_GB')
 NUM_CUSTOMERS = 10000
 
 DB_CONFIG = {
-    'host': 'localhost',
-    'port': 5432,
-    'database': 'InsureMe',
-    'user': 'admin',
-    'password': 'admin@1234'
+    'host': '*',
+    'port': *,
+    'database': '*',
+    'user': '*',
+    'password': '*'
 }
 
 # ------------------- Connect -------------------
