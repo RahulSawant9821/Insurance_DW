@@ -1,11 +1,12 @@
--- Create OLTP Schema
+-- Create Insurance_oltp Schema
 
-CREATE SCHEMA IF NOT EXISTS oltp;
+CREATE SCHEMA IF NOT EXISTS Insurance_oltp;
+
 
 -- Customer Table
 
-CREATE TABLE oltp.Customer (
-    customer_id VARCHAR(50),
+CREATE TABLE Insurance_oltp.Customer (
+    customer_id VARCHAR(50) primary KEY,
     first_name  VARCHAR(100),
     last_name   VARCHAR(100),
     postcode    VARCHAR(20),
@@ -17,7 +18,7 @@ CREATE TABLE oltp.Customer (
 
 -- Customer Financial Profile Table
 
-CREATE TABLE oltp.Customer_Financial_Profile (
+CREATE TABLE Insurance_oltp.Customer_Financial_Profile (
     profile_id   VARCHAR(50) PRIMARY KEY,
     customer_id  VARCHAR(50) NOT NULL,
     credit_score NUMERIC(3),
@@ -25,13 +26,13 @@ CREATE TABLE oltp.Customer_Financial_Profile (
     retrieved_at DATE,
     created_at   TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at   TIMESTAMP,
-    CONSTRAINT fk_customer_fin FOREIGN KEY (customer_id) REFERENCES oltp.Customer(customer_id)
+    CONSTRAINT fk_customer_fin FOREIGN KEY (customer_id) REFERENCES Insurance_oltp.Customer(customer_id)
 );
 
 
 -- Policy Table
 
-CREATE TABLE oltp.Policy (
+CREATE TABLE Insurance_oltp.Policy (
     policy_id          VARCHAR(50) PRIMARY KEY,
     customer_id        VARCHAR(50) NOT NULL,
     annual_premium_amount NUMERIC(15,2),
@@ -41,14 +42,14 @@ CREATE TABLE oltp.Policy (
     status             VARCHAR(20) CHECK (status IN ('pending','active','lapsed','terminated','settled','expired')),
     created_at         TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at         TIMESTAMP,
-    CONSTRAINT fk_policy_customer FOREIGN KEY (customer_id) REFERENCES oltp.Customer(customer_id),
+    CONSTRAINT fk_policy_customer FOREIGN KEY (customer_id) REFERENCES Insurance_oltp.Customer(customer_id),
     CONSTRAINT chk_policy_dates CHECK (end_date IS NULL OR end_date >= start_date)
 );
 
 
 --  Claims Table
 
-CREATE TABLE oltp.Claims (
+CREATE TABLE Insurance_oltp.Claims (
     claim_id        VARCHAR(50) PRIMARY KEY,
     policy_id       VARCHAR(50) NOT NULL,
     incident_date_time TIMESTAMP,
@@ -62,23 +63,23 @@ CREATE TABLE oltp.Claims (
     image_id        VARCHAR(50),
     created_at      TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at      TIMESTAMP,
-    CONSTRAINT fk_claim_policy FOREIGN KEY (policy_id) REFERENCES oltp.Policy(policy_id)
+    CONSTRAINT fk_claim_policy FOREIGN KEY (policy_id) REFERENCES Insurance_oltp.Policy(policy_id)
 );
 
 
 
 -- Payments Table 
 
-CREATE TABLE oltp.Payment (
+CREATE TABLE Insurance_oltp.Payment (
     payment_id     VARCHAR(50) PRIMARY KEY,
     claim_id       VARCHAR(50) UNIQUE,
     policy_id      VARCHAR(50) NOT NULL,
     payment_date   DATE NOT NULL,
     amount         NUMERIC(15,2) NOT NULL,
     payment_method VARCHAR(50) CHECK (payment_method IN ('credit_card','bank_transfer','cash','cheque')),
-    status_         VARCHAR(20) CHECK (status IN ('pending','completed','failed','refunded')),
+    status_         VARCHAR(20) CHECK (status_ IN ('pending','completed','failed','refunded')),
     created_at     TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at     TIMESTAMP,
-    CONSTRAINT fk_payment_policy FOREIGN KEY (policy_id) REFERENCES oltp.Policy(policy_id),
-    CONSTRAINT fk_payment_claim FOREIGN KEY (claim_id) REFERENCES oltp.Claims(claim_id)
+    CONSTRAINT fk_payment_policy FOREIGN KEY (policy_id) REFERENCES Insurance_oltp.Policy(policy_id),
+    CONSTRAINT fk_payment_claim FOREIGN KEY (claim_id) REFERENCES Insurance_oltp.Claims(claim_id)
 );
