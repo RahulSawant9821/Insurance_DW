@@ -10,7 +10,7 @@ NUM_CUSTOMERS = 10000
 
 DB_CONFIG = {
     'host': '*',
-    'port': *,
+    'port': '*',
     'database': '*',
     'user': '*',
     'password': '*'
